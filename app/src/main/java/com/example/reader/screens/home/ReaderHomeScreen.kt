@@ -33,13 +33,13 @@ import com.example.reader.navigation.ReaderScreens
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun Home(navController: NavController = NavController(LocalContext.current)) {
+fun Home(navController: NavController) {
     val scrollState = rememberScrollState()
 
     Scaffold(
         floatingActionButton = {
                                FABContent() {
-
+                                    navController.navigate(ReaderScreens.SearchScreen.name)
                                }
         },topBar = {
         ReaderAppBar(
