@@ -1,15 +1,13 @@
 package com.example.reader.screens.search
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
@@ -21,19 +19,23 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.reader.components.InputField
 import com.example.reader.components.ReaderAppBar
+import com.example.reader.model.Item
 import com.example.reader.model.MBook
 import com.example.reader.navigation.ReaderScreens
+import dagger.hilt.android.lifecycle.HiltViewModel
 
-@Preview
 @Composable
-fun SearchScreen(navController: NavController = NavController(LocalContext.current)) {
+fun SearchScreen(navController: NavController,
+                 viewModel: BookSearchViewModel = hiltViewModel() ) {
     Scaffold(topBar = {
         ReaderAppBar(
             title = "Search Books",
@@ -46,36 +48,39 @@ fun SearchScreen(navController: NavController = NavController(LocalContext.curre
     }) {
         Surface() {
             Column {
-                SearchForm(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)) {
+                SearchForm(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    viewModel
+                ) { query ->
+                    viewModel.searchBooks(query)
                  }
                 Spacer(modifier = Modifier.height(14.dp))
-                BookList(navController)
+                BookList(navController, viewModel)
             }
         }
     }
 }
 
 @Composable
-private fun BookList(navController: NavController) {
-    val listOfBooks = listOf(
-        MBook(id = "222", title = "W pustyni i w puszczy", authors = "Henryk Sienkiewicz", notes = null),
-        MBook(id = "223", title = "Janko Muzykant", authors = "Henryk Sienkiewicz", notes = null),
-        MBook(id = "224", title = "Pan Tadeusz", authors = "Adam Mickiewicz", notes = null),
-        MBook(id = "225", title = "Krzyżacy", authors = "Henryk Sienkiewicz", notes = null),
-        MBook(id = "226", title = "Unscripted: Życie, wolność, przedsiębiorczość", authors = "MJ DeMarco", notes = null)
-    )
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(listOfBooks) { book ->
-            RowInSearch(book)
+private fun BookList(navController: NavController,
+                     viewModel: BookSearchViewModel = hiltViewModel()) {
+
+    val listOfBooks = viewModel.list
+    if (viewModel.isLoading) {
+        LinearProgressIndicator()
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(listOfBooks) { book ->
+                RowInSearch(book, navController)
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun RowInSearch(book: MBook = MBook(id = "222", title = "W pustyni i w puszczy", authors = "Henryk Sienkiewicz", notes = null)) {
+fun RowInSearch(book: Item, navController: NavController) {
     Surface(
         modifier = Modifier
             .padding(
@@ -92,12 +97,17 @@ fun RowInSearch(book: MBook = MBook(id = "222", title = "W pustyni i w puszczy",
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val imageUrl: String = if(book.volumeInfo.imageLinks == null)
+                "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80"
+            else {
+                book.volumeInfo.imageLinks.smallThumbnail
+            }
             Image(
-                painter = rememberImagePainter(data = "http://books.google.com/books/content?id=JGH0DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"),
+                painter = rememberImagePainter(data = imageUrl),
                 contentDescription = "Book Image",
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .width(80.dp)
+                    .height(140.dp)
+                    .width(100.dp)
                     .padding(4.dp)
             )
             Column(
@@ -106,21 +116,25 @@ fun RowInSearch(book: MBook = MBook(id = "222", title = "W pustyni i w puszczy",
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = book.title.toString(),
+                    text = book.volumeInfo.title,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Author: " + book.authors.toString(),
+                    text = "Author: " + book.volumeInfo.authors,
                     style = MaterialTheme.typography.caption,
+                    fontStyle = FontStyle.Italic,
                     overflow = TextOverflow.Clip
                 )
                 Text(
-                    text = "Date: 2020-09-09",
-                    style = MaterialTheme.typography.caption
+                    text = "Date: " + book.volumeInfo.publishedDate,
+                    style = MaterialTheme.typography.caption,
+                    fontStyle = FontStyle.Italic,
+                    overflow = TextOverflow.Clip
                 )
                 Text(
-                    text = "[Computers]",
-                    style = MaterialTheme.typography.caption
+                    text = "[${book.volumeInfo.categories}]",
+                    style = MaterialTheme.typography.caption,
+                    overflow = TextOverflow.Clip
                 )
             }
         }
@@ -131,6 +145,7 @@ fun RowInSearch(book: MBook = MBook(id = "222", title = "W pustyni i w puszczy",
 @Composable
 fun SearchForm(
     modifier: Modifier = Modifier,
+    viewModel: BookSearchViewModel,
     loading: Boolean = false,
     hint: String = "Search",
     onSearch: (String) -> Unit = {}
