@@ -69,7 +69,14 @@ private fun BookList(navController: NavController,
 
     val listOfBooks = viewModel.list
     if (viewModel.isLoading) {
-        LinearProgressIndicator()
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Loading...")
+            LinearProgressIndicator()
+        }
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(listOfBooks) { book ->
@@ -89,7 +96,7 @@ fun RowInSearch(book: Item, navController: NavController) {
             )
             .fillMaxWidth()
             .clickable {
-
+                navController.navigate(ReaderScreens.DetailScreen.name + "/${book.id}")
             },
         elevation = 4.dp
     ) {

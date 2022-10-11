@@ -33,7 +33,7 @@ class BookRepository @Inject constructor(private val api: BooksApi) {
 }
 
 
-private val dataOrException = DataOrException<List<Item>, Boolean, Exception>()
+//private val dataOrException = DataOrException<List<Item>, Boolean, Exception>()
 //    private val bookInfoDataOrException = DataOrException<Item, Boolean, Exception>()
 //
 //    suspend fun getBooks(searchQuery: String):
