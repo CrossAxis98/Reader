@@ -1,6 +1,5 @@
 package com.example.reader.screens.search
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,11 +16,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -29,9 +26,7 @@ import coil.compose.rememberImagePainter
 import com.example.reader.components.InputField
 import com.example.reader.components.ReaderAppBar
 import com.example.reader.model.Item
-import com.example.reader.model.MBook
 import com.example.reader.navigation.ReaderScreens
-import dagger.hilt.android.lifecycle.HiltViewModel
 
 @Composable
 fun SearchScreen(navController: NavController,
@@ -80,14 +75,14 @@ private fun BookList(navController: NavController,
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(listOfBooks) { book ->
-                RowInSearch(book, navController)
+                BookRowInSearch(book, navController)
             }
         }
     }
 }
 
 @Composable
-fun RowInSearch(book: Item, navController: NavController) {
+fun BookRowInSearch(book: Item, navController: NavController) {
     Surface(
         modifier = Modifier
             .padding(

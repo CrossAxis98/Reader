@@ -46,9 +46,11 @@ fun BookDetailsScreen(
             navController.navigate(ReaderScreens.SearchScreen.name)
         }
     }) {
+        val scrollState = rememberScrollState()
         Surface(modifier = Modifier
             .padding(3.dp)
-            .fillMaxSize()) {
+            .fillMaxSize()
+            .verticalScroll(scrollState)) {
             Column(modifier = Modifier.padding(3.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally) {
@@ -144,11 +146,16 @@ fun ShowBookDetails(bookInfo: Resource<Item>, navController: NavController) {
             horizontalArrangement = Arrangement.Center
         ) {
             RoundedButton(label = "Save") {
+                val categories = if (bookInfo.data.volumeInfo.categories == null) {
+                    "No category provided"
+                } else {
+                    bookInfo.data.volumeInfo.categories.toString()
+                }
                 val book = MBook(
                     title = bookInfo.data.volumeInfo.title,
                     authors = bookInfo.data.volumeInfo.authors.toString(),
                     description = bookInfo.data.volumeInfo.description,
-                    categories = bookInfo.data.volumeInfo.categories.toString(),
+                    categories = categories,
                     notes = "",
                     photoUrl = imageUrl,
                     publishedDate = bookInfo.data.volumeInfo.publishedDate,
@@ -178,7 +185,7 @@ fun saveToFirebase(book: MBook, navController: NavController) {
                     .update(hashMapOf("id" to docId) as Map<String, Any>)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            navController.popBackStack()
+                            navController.navigate(ReaderScreens.ReaderHomeScreen.name)
                         }
                     }.addOnFailureListener {
                         Log.w("TAG", "SaveToFirebase: Error updating doc ", it)

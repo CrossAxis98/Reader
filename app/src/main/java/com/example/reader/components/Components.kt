@@ -1,5 +1,11 @@
 package com.example.reader.components
 
+import android.content.Context
+import android.view.MotionEvent
+import android.widget.Toast
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,15 +16,17 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.example.reader.R
 import com.example.reader.model.MBook
 import com.example.reader.navigation.ReaderScreens
 import com.google.firebase.auth.FirebaseAuth
@@ -236,7 +245,7 @@ fun FABContent(onTap: () -> Unit) {
 
 @Composable
 fun ListCard(
-    book: MBook = MBook("123", "Running", "Me and you", "hello"),
+    book: MBook,// = MBook("123", "Running", "Me and you", "hello"),
     onPressDetails: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -258,8 +267,13 @@ fun ListCard(
         Column(modifier = Modifier.width(screenWidth.dp - (spacing * 2)),
             horizontalAlignment = Alignment.Start) {
             Row(horizontalArrangement = Arrangement.Center) {
+                val imageUrl: String = if(book.photoUrl == null)
+                    "https://images.unsplash.com/photo-1541963463532-d68292c34b19?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=80&q=80"
+                else {
+                    book.photoUrl.toString()
+                }
                 Image(
-                    painter = rememberImagePainter(data = "http://books.google.com/books/content?id=JGH0DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"),
+                    painter = rememberImagePainter(data = imageUrl),
                     contentDescription = "Book Image",
                     modifier = Modifier
                         .height(140.dp)
@@ -277,7 +291,7 @@ fun ListCard(
                         contentDescription = "Fav icon",
                         modifier = Modifier.padding(bottom = 1.dp)
                     )
-                    BookRating(score = 5.0)
+                    BookRating(score = book.rating!!)
                 }
             }
             Text(
@@ -293,11 +307,18 @@ fun ListCard(
                 style = MaterialTheme.typography.caption
             )
         }
+        val isStartedReading = remember {
+            mutableStateOf(false)
+        }
         Row(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.Bottom
         ) {
-            RoundedButton(label = "Reading", radius = 70)
+            isStartedReading.value = book.startedReading != null
+            RoundedButton(
+                label = if (isStartedReading.value) "Reading" else "Not Started",
+                radius = 70
+            )
         }
     }
 }
@@ -354,4 +375,60 @@ fun BookRating(score: Double = 4.5) {
             )
         }
     }
+}
+
+//Rating Bar
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun RatingBar(
+    modifier: Modifier = Modifier,
+    rating: Int,
+    onPressRating: (Int) -> Unit
+) {
+    var ratingState by remember {
+        mutableStateOf(rating)
+    }
+
+    var selected by remember {
+        mutableStateOf(false)
+    }
+    val size by animateDpAsState(
+        targetValue = if (selected) 42.dp else 34.dp,
+        spring(Spring.DampingRatioMediumBouncy)
+    )
+
+    Row(
+        modifier = Modifier.width(280.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        for (i in 1..5) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_baseline_star_24),
+                contentDescription = "star",
+                modifier = modifier
+                    .width(size)
+                    .height(size)
+                    .pointerInteropFilter {
+                        when (it.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                selected = true
+                                onPressRating(i)
+                                ratingState = i
+                            }
+                            MotionEvent.ACTION_UP -> {
+                                selected = false
+                            }
+                        }
+                        true
+                    },
+                tint = if (i <= ratingState) Color(0xFFFFD700) else Color(0xFFA2ADB1)
+            )
+        }
+    }
+}
+
+fun showToast(context: Context, msg: String) {
+    Toast.makeText(context, msg, Toast.LENGTH_LONG)
+        .show()
 }
