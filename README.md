@@ -1,5 +1,5 @@
 # Reader
-Android application for storing and reviewing readed books, made with Firebase.
+Android application for storing and reviewing readed books - made with Udemy course.
 
 ### Tools and technologies
 * Firebase
