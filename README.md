@@ -8,7 +8,7 @@ Android application for storing and reviewing readed books, made with Firebase.
 * Coil
 * DI - dagger hilt
 
-![](screen1.PNG)
+![](screen1.png)
 ![](screen2.PNG)
 ![](screen3.PNG)
 ![](screen4.PNG)
