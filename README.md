@@ -9,12 +9,12 @@ Android application for storing and reviewing readed books, made with Firebase.
 * DI - dagger hilt
 
 ![](screen1.png)
-![](screen2.PNG)
-![](screen3.PNG)
-![](screen4.PNG)
-![](screen5.PNG)
-![](screen6.PNG)
-![](screen7.PNG)
-![](screen8.PNG)
+![](screen2.png)
+![](screen3.png)
+![](screen4.png)
+![](screen5.png)
+![](screen6.png)
+![](screen7.png)
+![](screen8.png)
 
 ###### API - https://books.google.com
